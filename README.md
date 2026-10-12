@@ -177,5 +177,5 @@ terraform plan          # preview changes
 terraform apply         # build
 terraform destroy       # tear down
 terraform state list    # see what's being managed
-terraform fmt           # format the config
+
 ```
