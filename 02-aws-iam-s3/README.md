@@ -52,7 +52,6 @@ This is a small exercise in IAM policy evaluation, especially how an explicit
 - Allow vs. explicit Deny, and why Deny wins
 - `aws_s3_bucket`
 - Input variables and outputs
-- Verifying access safely with the IAM Policy Simulator (no login, no keys)
 
 ## How to Run
 
@@ -72,63 +71,17 @@ Tear everything down when you're done so nothing lingers or costs money:
 terraform destroy
 ```
 
-## Verifying Access (no credentials needed)
-
-The IAM Policy Simulator proves the policies behave as intended — it logs in as
-no one and needs only `iam:SimulatePrincipalPolicy`. Replace `<ACCOUNT_ID>` with
-your own account and quote any ARN containing `*`:
-
-```bash
-# Intern should be ALLOWED on their own bucket
-aws iam simulate-principal-policy \
-  --policy-source-arn "arn:aws:iam::<ACCOUNT_ID>:user/Mpho" \
-  --action-names s3:GetObject s3:ListBucket \
-  --resource-arns "arn:aws:s3:::intern-bucket-moeketsi-2026" \
-                  "arn:aws:s3:::intern-bucket-moeketsi-2026/*"
-
-# Intern should be DENIED on the engineer bucket
-aws iam simulate-principal-policy \
-  --policy-source-arn "arn:aws:iam::<ACCOUNT_ID>:user/Mpho" \
-  --action-names s3:GetObject s3:PutObject \
-  --resource-arns "arn:aws:s3:::engineer-bucket-moeketsi-2026/*"
-
-# Engineer should be ALLOWED on both
-aws iam simulate-principal-policy \
-  --policy-source-arn "arn:aws:iam::<ACCOUNT_ID>:user/Moeketsi" \
-  --action-names s3:GetObject s3:PutObject \
-  --resource-arns "arn:aws:s3:::intern-bucket-moeketsi-2026/*" \
-                  "arn:aws:s3:::engineer-bucket-moeketsi-2026/*"
-```
-
-Expected results:
-
-- Intern → own bucket: **allowed**
-- Intern → engineer bucket: **explicitDeny**
-- Engineer → both buckets: **allowed**
-
 ## Problems I Encountered and How I Fixed Them
 
-### 1. `zsh: no matches found` on ARNs ending in `/*`
+### 1. Keeping account IDs out of a public repo
 
-**Problem:** Running a simulator command directly, zsh tried to glob the `*` in
-`arn:aws:s3:::my-bucket/*` against local files, found none, and failed before
-the AWS call ran.
+**Problem:** It's easy to hardcode a 12-digit account ID into a command or
+script. That shouldn't be published to a public repo.
 
-**Fix:** Quote any ARN containing `*`:
-
-```bash
---resource-arns "arn:aws:s3:::my-bucket" "arn:aws:s3:::my-bucket/*"
-```
-
-### 2. Keeping account IDs out of a public repo
-
-**Problem:** It's easy to hardcode a 12-digit account ID into a helper command
-or script. That shouldn't be published to a public repo.
-
-**Fix:** Pass the account ID in at runtime (`<ACCOUNT_ID>` placeholder, an
+**Fix:** Pass the account ID in at runtime (an `<ACCOUNT_ID>` placeholder, an
 env var, or `aws sts get-caller-identity`) so nothing sensitive lands in git.
 
-### 3. Keeping Terraform state out of git
+### 2. Keeping Terraform state out of git
 
 **Problem:** IAM/S3 state can contain account details and sensitive values, and
 this repo is public.
@@ -140,8 +93,6 @@ Verified with `git check-ignore` before pushing.
 
 - An explicit `Deny` in IAM always overrides an `Allow` — the core rule this
   project demonstrates.
-- The IAM Policy Simulator verifies access without creating keys or logging in
-  as anyone — the least-privilege way to test.
 - Never hardcode account IDs or credentials in files headed for a public repo.
 - Never commit Terraform state; confirm it's ignored before pushing.
 - Always confirm `aws sts get-caller-identity` before `apply` or `destroy` so
