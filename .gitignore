@@ -1,8 +1,8 @@
 # Terraform state and local artifacts — never commit these.
-.terraform/
+**/.terraform/
 *.tfstate
 *.tfstate.*
 crash.log
 *.tfvars
-!terraform.tfvars
-output/
+!**/terraform.tfvars
+**/output/
