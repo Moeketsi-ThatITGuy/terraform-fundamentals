@@ -11,6 +11,7 @@ along the way.
 |---|---|---|
 | 1 | [`01-local-fundamentals`](01-local-fundamentals/) | Core HCL on the `local` + `random` providers — variables, `for_each`, `count`, lifecycle rules, data sources, outputs. No cloud account needed. |
 | 2 | [`02-aws-iam-s3`](02-aws-iam-s3/) | First real AWS project — IAM users, IAM policies, and S3 buckets modelling a least-privilege access-control scenario (Allow vs. explicit Deny). |
+| 3 | [`03-aws-iam-s3-Advanced`](03-aws-iam-s3-Advanced/) | Scaling up — multiple users via `for_each`, IAM groups with group-level policies, reusable modules, and per-user prefix isolation using the `${aws:username}` policy variable. |
 
 ## How This Repo Is Organised
 
